@@ -21,6 +21,7 @@ import { scoreDirection, applyTimeAwareness } from "./engines/probability.js";
 import { computeEdge, decide } from "./engines/edge.js";
 import { appendCsvRow, formatNumber, formatPct, getCandleWindowTiming, sleep } from "./utils.js";
 import { startBinanceTradeStream } from "./data/binanceWs.js";
+import { createAutoTrader } from "./trading/autoTrader.js";
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
@@ -399,6 +400,7 @@ async function main() {
   const binanceStream = startBinanceTradeStream({ symbol: CONFIG.symbol });
   const polymarketLiveStream = startPolymarketChainlinkPriceStream({});
   const chainlinkStream = startChainlinkPriceStream({});
+  const autoTrader = createAutoTrader();
 
   let prevSpotPrice = null;
   let prevCurrentPrice = null;
@@ -581,6 +583,8 @@ async function main() {
       const currentPrice = chainlink?.price ?? null;
       const marketSlug = poly.ok ? String(poly.market?.slug ?? "") : "";
       const marketStartMs = poly.ok && poly.market?.eventStartTime ? new Date(poly.market.eventStartTime).getTime() : null;
+      const heikenColor = consec.color ?? null;
+      const heikenCount = consec.count ?? null;
 
       if (marketSlug && priceToBeatState.slug !== marketSlug) {
         priceToBeatState = { slug: marketSlug, value: null, setAtMs: null };
@@ -667,10 +671,31 @@ async function main() {
               : ANSI.reset)
         : ANSI.reset;
 
+      if (poly.ok) {
+        autoTrader.updateTokenIds(poly.tokens);
+      }
+
+      await autoTrader.maybeTrade({
+        marketSlug,
+        timeLeftMin,
+        pLong,
+        pShort,
+        heikenColor,
+        heikenCount,
+        marketUp,
+        marketDown,
+        priceToBeat,
+        currentPrice,
+        regime: regimeInfo.regime
+      });
+
+      const autoTradeLine = autoTrader.formatStatusLine();
+
       const lines = [
         titleLine,
         marketLine,
         kv("Time left:", `${timeColor}${fmtTimeLeft(timeLeftMin)}${ANSI.reset}`),
+        autoTradeLine ? kv("AutoTrade:", autoTradeLine.replace("AutoTrade: ", "")) : null,
         "",
         sepLine(),
         "",

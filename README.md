@@ -93,6 +93,42 @@ You can set them in your shell, or create a `.env` file and load it using your p
   - If set, the assistant will target a specific market slug.
 - `POLYMARKET_LIVE_WS_URL` (default: `wss://ws-live-data.polymarket.com`)
 
+### Auto-trading (optional)
+
+The assistant can place CLOB orders when rules are satisfied. By default, auto-trading is **disabled** and runs in **dry-run** mode. You must explicitly enable it.
+
+- `POLYMARKET_AUTO_TRADE` (default: `false`)
+  - Set to `true` to allow auto-trading logic to run.
+- `POLYMARKET_DRY_RUN` (default: `true`)
+  - When `true`, no orders are submitted (decisions are logged to `./logs/trades.csv`).
+- `POLYMARKET_CLOB_API_KEY`
+- `POLYMARKET_CLOB_API_SECRET`
+- `POLYMARKET_CLOB_API_PASSPHRASE`
+- `POLYMARKET_CLOB_ORDER_PATH` (default: `/order`)
+- `POLYMARKET_CLOB_ORDER_TYPE` (default: `limit`)
+- `POLYMARKET_CLOB_TIME_IN_FORCE` (default: `gtc`)
+- `POLYMARKET_ORDER_USD` (default: `10`)
+  - Dollar amount to allocate per order.
+- `POLYMARKET_MIN_MINUTES_LEFT` (default: `5`)
+- `POLYMARKET_MAX_MINUTES_LEFT` (default: `9`)
+- `POLYMARKET_MIN_PREDICT_PCT` (default: `0.65`)
+  - Minimum TA predict to enter a trade.
+- `POLYMARKET_ENFORCE_PRICE_VS_PREDICT` (default: `true`)
+  - Requires share price to be <= TA predict percentage.
+- `POLYMARKET_MAX_PRICE_CENTS` (default: `99`)
+  - Max share price (in cents) to enter.
+- `POLYMARKET_MIN_DISTANCE_QUIET_USD` (default: `50`)
+- `POLYMARKET_MIN_DISTANCE_VOLATILE_USD` (default: `100`)
+  - Required distance from price-to-beat (quiet vs. trending regimes).
+- `POLYMARKET_REQUIRE_HEIKEN_COLOR` (default: `true`)
+- `POLYMARKET_MIN_HEIKEN_COUNT` (default: `2`)
+  - Minimum consecutive Heiken Ashi candles in the trade direction.
+- `POLYMARKET_MAX_TRADES_PER_MARKET` (default: `1`)
+- `POLYMARKET_BLOCKED_ET_WINDOWS` (default: `09:30-10:15`)
+  - Comma-separated ET time ranges to skip (e.g. `09:30-10:15,14:00-14:30`).
+- `POLYMARKET_PRICE_UNIT` (default: `cents`)
+  - Use `dollars` if your CLOB price API expects 0-1 dollar pricing.
+
 ### Chainlink on Polygon (fallback)
 
 - `CHAINLINK_BTC_USD_AGGREGATOR`
