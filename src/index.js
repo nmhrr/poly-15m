@@ -82,6 +82,14 @@ function renderScreen(text) {
 
 function launchTailWindow({ enabled, path: filePath, title }) {
   if (!enabled) return;
+  try {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    if (!fs.existsSync(filePath)) {
+      fs.writeFileSync(filePath, "", "utf8");
+    }
+  } catch {
+    // ignore
+  }
   const quotedPath = filePath.replace(/'/g, "''");
   if (process.platform === "win32") {
     const psCommand = title
