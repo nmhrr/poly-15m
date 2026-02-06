@@ -63,6 +63,8 @@ export const CONFIG = {
 
   ui: {
     tailCsvEnabled: (process.env.POLYMARKET_CSV_TAIL || "false").toLowerCase() === "true",
-    tailCsvPath: process.env.POLYMARKET_CSV_TAIL_PATH || "./logs/signals.csv"
+    tailCsvPath: process.env.POLYMARKET_CSV_TAIL_PATH || "./logs/signals.csv",
+    tailOrdersEnabled: (process.env.POLYMARKET_ORDERS_TAIL || "true").toLowerCase() === "true",
+    tailOrdersPath: process.env.POLYMARKET_ORDERS_TAIL_PATH || "./logs/orders.csv"
   }
 };

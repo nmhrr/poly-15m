@@ -145,6 +145,13 @@ If you want a second terminal window that shows the live CSV output, enable the 
 
 On Windows this opens a PowerShell window with `Get-Content -Wait`. On other platforms it runs `tail -f`.
 
+### Orders window (default: on)
+
+By default the assistant opens a second window that tails `./logs/orders.csv` so you can see order attempts, status, and failures in real time.
+
+- `POLYMARKET_ORDERS_TAIL` (default: `true`)
+- `POLYMARKET_ORDERS_TAIL_PATH` (default: `./logs/orders.csv`)
+
 ### Chainlink on Polygon (fallback)
 
 - `CHAINLINK_BTC_USD_AGGREGATOR`

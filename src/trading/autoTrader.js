@@ -87,6 +87,18 @@ export function createAutoTrader() {
     "reason",
     "order_id"
   ];
+  const ordersHeader = [
+    "timestamp",
+    "market_slug",
+    "side",
+    "price_cents",
+    "size_shares",
+    "signal",
+    "recommendation",
+    "order_status",
+    "order_id",
+    "error"
+  ];
 
   async function maybeTrade({
     marketSlug,
@@ -99,7 +111,9 @@ export function createAutoTrader() {
     marketDown,
     priceToBeat,
     currentPrice,
-    regime
+    regime,
+    signal,
+    recommendation
   }) {
     if (!CONFIG.trading.enabled) {
       return { action: "SKIP", reason: "disabled" };
@@ -209,18 +223,49 @@ export function createAutoTrader() {
         "dry_run",
         ""
       ]);
+      appendCsvRow("./logs/orders.csv", ordersHeader, [
+        new Date().toISOString(),
+        marketSlug,
+        side,
+        priceRounded,
+        sizeRounded,
+        signal ?? "",
+        recommendation ?? "",
+        "dry_run",
+        "",
+        ""
+      ]);
       state.lastDecision = { action: "DRY_RUN", reason };
       return { action: "DRY_RUN", reason };
     }
 
-    const order = await placeClobOrder({
-      tokenId,
-      side: priceSide,
-      price: CONFIG.trading.priceUnit === "dollars" ? priceRounded / 100 : priceRounded,
-      size: sizeRounded,
-      type: CONFIG.trading.orderType,
-      timeInForce: CONFIG.trading.timeInForce
-    });
+    let order = null;
+    try {
+      order = await placeClobOrder({
+        tokenId,
+        side: priceSide,
+        price: CONFIG.trading.priceUnit === "dollars" ? priceRounded / 100 : priceRounded,
+        size: sizeRounded,
+        type: CONFIG.trading.orderType,
+        timeInForce: CONFIG.trading.timeInForce
+      });
+    } catch (err) {
+      const message = err?.message ?? String(err);
+      appendCsvRow("./logs/orders.csv", ordersHeader, [
+        new Date().toISOString(),
+        marketSlug,
+        side,
+        priceRounded,
+        sizeRounded,
+        signal ?? "",
+        recommendation ?? "",
+        "failed",
+        "",
+        message
+      ]);
+      state.lastDecision = { action: "FAILED", reason: message };
+      return { action: "FAILED", reason: message };
+    }
 
     const updatedTrades = [...tradesForMarket, { side, at: Date.now(), order }];
     state.lastTradeBySlug.set(marketSlug, updatedTrades);
@@ -235,6 +280,18 @@ export function createAutoTrader() {
       distance.toFixed(2),
       "submitted",
       order?.order_id ?? order?.id ?? ""
+    ]);
+    appendCsvRow("./logs/orders.csv", ordersHeader, [
+      new Date().toISOString(),
+      marketSlug,
+      side,
+      priceRounded,
+      sizeRounded,
+      signal ?? "",
+      recommendation ?? "",
+      order?.status ?? "submitted",
+      order?.order_id ?? order?.id ?? "",
+      ""
     ]);
 
     state.lastDecision = { action: "TRADE", reason };

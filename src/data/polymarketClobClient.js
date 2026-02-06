@@ -1,19 +1,22 @@
 import crypto from "node:crypto";
 import { CONFIG } from "../config.js";
 
-function signRequest({ secret, timestamp, method, path, body }) {
+function signRequest({ secret, timestamp, method, path, body, encoding }) {
   const payload = `${timestamp}${method.toUpperCase()}${path}${body}`;
-  return crypto.createHmac("sha256", secret).update(payload).digest("hex");
+  return crypto.createHmac("sha256", secret).update(payload).digest(encoding);
 }
 
-function buildAuthHeaders({ apiKey, apiSecret, apiPassphrase, method, path, body }) {
-  const timestamp = String(Math.floor(Date.now() / 1000));
+function buildAuthHeaders({ apiKey, apiSecret, apiPassphrase, method, path, body, encoding, timestampUnit }) {
+  const timestamp = timestampUnit === "ms"
+    ? String(Date.now())
+    : String(Math.floor(Date.now() / 1000));
   const signature = signRequest({
     secret: apiSecret,
     timestamp,
     method,
     path,
-    body
+    body,
+    encoding
   });
 
   return {
@@ -25,8 +28,13 @@ function buildAuthHeaders({ apiKey, apiSecret, apiPassphrase, method, path, body
   };
 }
 
+function normalizePath(path) {
+  if (!path) return "/";
+  return path.startsWith("/") ? path : `/${path}`;
+}
+
 function buildRequestUrl(path) {
-  return new URL(path, CONFIG.clobBaseUrl).toString();
+  return new URL(normalizePath(path), CONFIG.clobBaseUrl).toString();
 }
 
 export async function placeClobOrder({ tokenId, side, price, size, type = "limit", timeInForce = "gtc" }) {
@@ -47,14 +55,16 @@ export async function placeClobOrder({ tokenId, side, price, size, type = "limit
     time_in_force: timeInForce
   });
 
-  const path = CONFIG.trading.orderPath;
+  const path = normalizePath(CONFIG.trading.orderPath);
   const headers = buildAuthHeaders({
     apiKey,
     apiSecret,
     apiPassphrase,
     method: "POST",
     path,
-    body
+    body,
+    encoding: CONFIG.trading.signatureEncoding,
+    timestampUnit: CONFIG.trading.timestampUnit
   });
 
   const res = await fetch(buildRequestUrl(path), {
@@ -64,7 +74,8 @@ export async function placeClobOrder({ tokenId, side, price, size, type = "limit
   });
 
   if (!res.ok) {
-    throw new Error(`CLOB order error: ${res.status} ${await res.text()}`);
+    const details = await res.text();
+    throw new Error(`CLOB order error: ${res.status} ${details}`);
   }
 
   return await res.json();

@@ -80,11 +80,13 @@ function renderScreen(text) {
   process.stdout.write(text);
 }
 
-function maybeLaunchCsvTail() {
-  if (!CONFIG.ui.tailCsvEnabled) return;
-  const csvPath = CONFIG.ui.tailCsvPath;
+function launchTailWindow({ enabled, path: filePath, title }) {
+  if (!enabled) return;
+  const quotedPath = filePath.replace(/'/g, "''");
   if (process.platform === "win32") {
-    const psCommand = `Get-Content -Path '${csvPath}' -Wait`;
+    const psCommand = title
+      ? `$Host.UI.RawUI.WindowTitle='${title}'; Get-Content -Path '${quotedPath}' -Wait`
+      : `Get-Content -Path '${quotedPath}' -Wait`;
     spawn("cmd.exe", ["/c", "start", "powershell", "-NoExit", "-Command", psCommand], {
       detached: true,
       stdio: "ignore"
@@ -92,10 +94,24 @@ function maybeLaunchCsvTail() {
     return;
   }
 
-  spawn("sh", ["-c", `tail -f ${csvPath}`], {
+  const cmd = title ? `echo ${title} && tail -f ${filePath}` : `tail -f ${filePath}`;
+  spawn("sh", ["-c", cmd], {
     detached: true,
     stdio: "ignore"
   }).unref();
+}
+
+function maybeLaunchTails() {
+  launchTailWindow({
+    enabled: CONFIG.ui.tailCsvEnabled,
+    path: CONFIG.ui.tailCsvPath,
+    title: "Polymarket Signals CSV"
+  });
+  launchTailWindow({
+    enabled: CONFIG.ui.tailOrdersEnabled,
+    path: CONFIG.ui.tailOrdersPath,
+    title: "Polymarket Orders"
+  });
 }
 
 function stripAnsi(s) {
@@ -420,7 +436,7 @@ async function main() {
   const polymarketLiveStream = startPolymarketChainlinkPriceStream({});
   const chainlinkStream = startChainlinkPriceStream({});
   const autoTrader = createAutoTrader();
-  maybeLaunchCsvTail();
+  maybeLaunchTails();
 
   let prevSpotPrice = null;
   let prevCurrentPrice = null;
@@ -706,7 +722,9 @@ async function main() {
         marketDown,
         priceToBeat,
         currentPrice,
-        regime: regimeInfo.regime
+        regime: regimeInfo.regime,
+        signal,
+        recommendation: rec.action === "ENTER" ? `${rec.side}:${rec.phase}:${rec.strength}` : "NO_TRADE"
       });
 
       const autoTradeLine = autoTrader.formatStatusLine();
