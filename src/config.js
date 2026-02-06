@@ -42,6 +42,8 @@ export const CONFIG = {
     orderPath: process.env.POLYMARKET_CLOB_ORDER_PATH || "/order",
     orderType: process.env.POLYMARKET_CLOB_ORDER_TYPE || "limit",
     timeInForce: process.env.POLYMARKET_CLOB_TIME_IN_FORCE || "gtc",
+    signatureEncoding: process.env.POLYMARKET_CLOB_SIGNATURE_ENCODING || "hex",
+    timestampUnit: process.env.POLYMARKET_CLOB_TIMESTAMP_UNIT || "s",
     orderUsd: Number(process.env.POLYMARKET_ORDER_USD || "10"),
     minMinutesLeft: Number(process.env.POLYMARKET_MIN_MINUTES_LEFT || "5"),
     maxMinutesLeft: Number(process.env.POLYMARKET_MAX_MINUTES_LEFT || "9"),

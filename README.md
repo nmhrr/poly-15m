@@ -110,6 +110,10 @@ Get your API keys and secrets from https://polymarket.com/settings?tab=builder
 - `POLYMARKET_CLOB_ORDER_PATH` (default: `/order`)
 - `POLYMARKET_CLOB_ORDER_TYPE` (default: `limit`)
 - `POLYMARKET_CLOB_TIME_IN_FORCE` (default: `gtc`)
+- `POLYMARKET_CLOB_SIGNATURE_ENCODING` (default: `hex`)
+  - Some CLOB keys require `base64` signatures if `hex` returns 401.
+- `POLYMARKET_CLOB_TIMESTAMP_UNIT` (default: `s`)
+  - Use `ms` if your key expects millisecond timestamps.
 - `POLYMARKET_ORDER_USD` (default: `10`)
   - Dollar amount to allocate per order.
 - `POLYMARKET_MIN_MINUTES_LEFT` (default: `5`)
