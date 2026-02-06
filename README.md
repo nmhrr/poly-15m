@@ -130,6 +130,8 @@ npm install
 npm run derive-user-creds
 ```
 
+> Note: this repo installs `@polymarket/clob-client` directly from GitHub. Make sure Git is installed and available on your PATH if `npm install` prompts for it.
+
 3) Copy the printed `API Key`, `Secret`, and `Passphrase`, then set:
 
 ```powershell
