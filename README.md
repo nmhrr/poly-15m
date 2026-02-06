@@ -93,6 +93,92 @@ You can set them in your shell, or create a `.env` file and load it using your p
   - If set, the assistant will target a specific market slug.
 - `POLYMARKET_LIVE_WS_URL` (default: `wss://ws-live-data.polymarket.com`)
 
+### Auto-trading (optional)
+
+The assistant can place CLOB orders when rules are satisfied. By default, auto-trading is **disabled** and runs in **dry-run** mode. You must explicitly enable it.
+
+- `POLYMARKET_AUTO_TRADE` (default: `false`)
+  - Set to `true` to allow auto-trading logic to run.
+- `POLYMARKET_DRY_RUN` (default: `true`)
+  - When `true`, no orders are submitted (decisions are logged to `./logs/trades.csv`).
+- `POLYMARKET_CLOB_API_KEY`
+- `POLYMARKET_CLOB_API_SECRET`
+- `POLYMARKET_CLOB_API_PASSPHRASE`
+- `POLYMARKET_CLOB_ORDER_PATH` (default: `/order`)
+- `POLYMARKET_CLOB_ORDER_TYPE` (default: `limit`)
+- `POLYMARKET_CLOB_TIME_IN_FORCE` (default: `gtc`)
+- `POLYMARKET_CLOB_SIGNATURE_ENCODING` (default: `hex`)
+  - Some CLOB keys require `base64` signatures if `hex` returns 401.
+- `POLYMARKET_CLOB_TIMESTAMP_UNIT` (default: `s`)
+  - Use `ms` if your key expects millisecond timestamps.
+- **Do not use Builder API credentials** from Polymarket settings as CLOB user credentials.
+  - Builder keys are for order attribution; CLOB trading requires user API credentials derived from your private key.
+
+#### Derive CLOB user API credentials (Windows 11)
+
+Use your **private key locally** to generate **user API credentials** once, then only store the derived `apiKey/secret/passphrase` in your environment. **Never share your private key.**
+
+1) Export your private key from Polymarket (Settings → Export Private Key).
+2) Run the helper script from the repo root:
+
+```powershell
+setx PRIVATE_KEY "YOUR_PRIVATE_KEY"
+$env:PRIVATE_KEY = "YOUR_PRIVATE_KEY"
+npm install
+npm run derive-user-creds
+```
+
+3) Copy the printed `API Key`, `Secret`, and `Passphrase`, then set:
+
+```powershell
+$env:POLYMARKET_CLOB_API_KEY = "..."
+$env:POLYMARKET_CLOB_API_SECRET = "..."
+$env:POLYMARKET_CLOB_API_PASSPHRASE = "..."
+```
+
+4) Optional: clear the private key from your session:
+
+```powershell
+Remove-Item Env:PRIVATE_KEY
+```
+- `POLYMARKET_ORDER_USD` (default: `10`)
+  - Dollar amount to allocate per order.
+- `POLYMARKET_MIN_MINUTES_LEFT` (default: `5`)
+- `POLYMARKET_MAX_MINUTES_LEFT` (default: `9`)
+- `POLYMARKET_MIN_PREDICT_PCT` (default: `0.65`)
+  - Minimum TA predict to enter a trade.
+- `POLYMARKET_ENFORCE_PRICE_VS_PREDICT` (default: `true`)
+  - Requires share price to be <= TA predict percentage.
+- `POLYMARKET_MAX_PRICE_CENTS` (default: `99`)
+  - Max share price (in cents) to enter.
+- `POLYMARKET_MIN_DISTANCE_QUIET_USD` (default: `50`)
+- `POLYMARKET_MIN_DISTANCE_VOLATILE_USD` (default: `100`)
+  - Required distance from price-to-beat (quiet vs. trending regimes).
+- `POLYMARKET_REQUIRE_HEIKEN_COLOR` (default: `true`)
+- `POLYMARKET_MIN_HEIKEN_COUNT` (default: `2`)
+  - Minimum consecutive Heiken Ashi candles in the trade direction.
+- `POLYMARKET_MAX_TRADES_PER_MARKET` (default: `1`)
+- `POLYMARKET_BLOCKED_ET_WINDOWS` (default: `09:30-10:15`)
+  - Comma-separated ET time ranges to skip (e.g. `09:30-10:15,14:00-14:30`).
+- `POLYMARKET_PRICE_UNIT` (default: `cents`)
+  - Use `dollars` if your CLOB price API expects 0-1 dollar pricing.
+
+### CSV tail window (optional)
+
+If you want a second terminal window that shows the live CSV output, enable the tail helper:
+
+- `POLYMARKET_CSV_TAIL` (default: `false`)
+- `POLYMARKET_CSV_TAIL_PATH` (default: `./logs/signals.csv`)
+
+On Windows this opens a PowerShell window with `Get-Content -Wait`. On other platforms it runs `tail -f`.
+
+### Orders window (default: on)
+
+By default the assistant opens a second window that tails `./logs/orders.csv` so you can see order attempts, status, and failures in real time.
+
+- `POLYMARKET_ORDERS_TAIL` (default: `true`)
+- `POLYMARKET_ORDERS_TAIL_PATH` (default: `./logs/orders.csv`)
+
 ### Chainlink on Polygon (fallback)
 
 - `CHAINLINK_BTC_USD_AGGREGATOR`

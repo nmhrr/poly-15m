@@ -4,9 +4,12 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "derive-user-creds": "node scripts/deriveUserApiCreds.js"
   },
   "dependencies": {
+    "@polymarket/clob-client": "^0.16.0",
+    "ethers5": "npm:ethers@5.7.2",
     "ethers": "^6.11.1",
     "https-proxy-agent": "^7.0.6",
     "socks-proxy-agent": "^8.0.5",
