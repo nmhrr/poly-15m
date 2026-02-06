@@ -8,6 +8,7 @@
     "derive-user-creds": "node scripts/deriveUserApiCreds.js"
   },
   "dependencies": {
+    "@polymarket/clob-client": "github:Polymarket/clob-client",
     "ethers5": "npm:ethers@5.7.2",
     "ethers": "^6.11.1",
     "https-proxy-agent": "^7.0.6",

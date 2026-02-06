@@ -36,6 +36,8 @@ export const CONFIG = {
   trading: {
     enabled: (process.env.POLYMARKET_AUTO_TRADE || "false").toLowerCase() === "true",
     dryRun: (process.env.POLYMARKET_DRY_RUN || "true").toLowerCase() === "true",
+    accountType: (process.env.POLYMARKET_ACCOUNT_TYPE || "").toLowerCase(),
+    privateKey: process.env.POLYMARKET_PRIVATE_KEY || "",
     apiKey: process.env.POLYMARKET_CLOB_API_KEY || "",
     apiSecret: process.env.POLYMARKET_CLOB_API_SECRET || "",
     apiPassphrase: process.env.POLYMARKET_CLOB_API_PASSPHRASE || "",

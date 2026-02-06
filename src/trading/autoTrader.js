@@ -119,6 +119,16 @@ export function createAutoTrader() {
       return { action: "SKIP", reason: "disabled" };
     }
 
+    if (!CONFIG.trading.dryRun) {
+      const accountType = CONFIG.trading.accountType;
+      if (!accountType || !["email", "wallet"].includes(accountType)) {
+        return { action: "SKIP", reason: "missing_account_type" };
+      }
+      if (!CONFIG.trading.privateKey) {
+        return { action: "SKIP", reason: "missing_private_key" };
+      }
+    }
+
     if (!marketSlug) {
       return { action: "SKIP", reason: "missing_market_slug" };
     }

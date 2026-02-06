@@ -1,5 +1,10 @@
 import crypto from "node:crypto";
+import { Wallet } from "ethers5";
+import { ClobClient } from "@polymarket/clob-client";
 import { CONFIG } from "../config.js";
+
+const CHAIN_ID = 137;
+let derivedCredsPromise = null;
 
 function signRequest({ secret, timestamp, method, path, body, encoding }) {
   const payload = `${timestamp}${method.toUpperCase()}${path}${body}`;
@@ -38,12 +43,30 @@ function buildRequestUrl(path) {
 }
 
 export async function placeClobOrder({ tokenId, side, price, size, type = "limit", timeInForce = "gtc" }) {
-  const apiKey = CONFIG.trading.apiKey;
-  const apiSecret = CONFIG.trading.apiSecret;
-  const apiPassphrase = CONFIG.trading.apiPassphrase;
+  let apiKey = CONFIG.trading.apiKey;
+  let apiSecret = CONFIG.trading.apiSecret;
+  let apiPassphrase = CONFIG.trading.apiPassphrase;
 
   if (!apiKey || !apiSecret || !apiPassphrase) {
-    throw new Error("Missing Polymarket CLOB API credentials.");
+    const privateKey = CONFIG.trading.privateKey;
+    if (!privateKey) {
+      throw new Error("Missing POLYMARKET_PRIVATE_KEY for CLOB authentication.");
+    }
+    if (!derivedCredsPromise) {
+      derivedCredsPromise = (async () => {
+        const signer = new Wallet(privateKey);
+        const client = new ClobClient(CONFIG.clobBaseUrl, CHAIN_ID, signer);
+        return await client.createOrDeriveApiKey();
+      })();
+    }
+    const derived = await derivedCredsPromise;
+    apiKey = derived?.apiKey ?? "";
+    apiSecret = derived?.secret ?? "";
+    apiPassphrase = derived?.passphrase ?? "";
+  }
+
+  if (!apiKey || !apiSecret || !apiPassphrase) {
+    throw new Error("Missing Polymarket CLOB API credentials after derivation.");
   }
 
   const body = JSON.stringify({
