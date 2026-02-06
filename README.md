@@ -1,6 +1,8 @@
 # Polymarket BTC 15m Assistant
 
-A real-time console trading assistant for Polymarket **"Bitcoin Up or Down" 15-minute** markets.
+A real-time console trading assistant and bot for Polymarket's **"Bitcoin Up or Down" 15-minute** markets.
+
+Support for Solana, Ethereum, and XRP coming soon.
 
 It combines:
 - Polymarket market selection + UP/DOWN prices + liquidity
@@ -21,7 +23,7 @@ It combines:
 ### 1) Clone the repository
 
 ```bash
-git clone https://github.com/FrondEnt/PolymarketBTC15mAssistant.git
+git clone https://github.com/nmhrr/poly-15m.git
 ```
 
 Alternative (no git):
@@ -114,7 +116,7 @@ The assistant can place CLOB orders when rules are satisfied. By default, auto-t
 - **Do not use Builder API credentials** from Polymarket settings as CLOB user credentials.
   - Builder keys are for order attribution; CLOB trading requires user API credentials derived from your private key.
 
-#### Derive CLOB user API credentials (standalone script — outside this repo)
+#### Derive CLOB user API credentials (standalone script — not in this repo)
 
 Use your **private key locally** to generate **user API credentials** once, then only store the derived `apiKey/secret/passphrase` in your environment. **Never share your private key.**
 
