@@ -114,6 +114,13 @@ The assistant can place CLOB orders when rules are satisfied. By default, auto-t
   - Some CLOB keys require `base64` signatures if `hex` returns 401.
 - `POLYMARKET_CLOB_TIMESTAMP_UNIT` (default: `s`)
   - Use `ms` if your key expects millisecond timestamps.
+- **Do not use Builder API credentials** from Polymarket settings as CLOB user credentials.
+  - Builder keys are for order attribution; this bot derives user API credentials from your private key at runtime.
+  - If you see `ERR_MODULE_NOT_FOUND` for `@polymarket/clob-client`, run:
+    - `npm install`
+    - `cd node_modules/@polymarket/clob-client`
+    - `npm install`
+    - `npm run build`
 - `POLYMARKET_ORDER_USD` (default: `10`)
   - Dollar amount to allocate per order.
 - `POLYMARKET_MIN_MINUTES_LEFT` (default: `5`)

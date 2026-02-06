@@ -1,10 +1,54 @@
 import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { Wallet } from "ethers5";
-import { ClobClient } from "@polymarket/clob-client";
 import { CONFIG } from "../config.js";
 
 const CHAIN_ID = 137;
 let derivedCredsPromise = null;
+let clobClientPromise = null;
+
+async function loadClobClient() {
+  if (clobClientPromise) {
+    return clobClientPromise;
+  }
+
+  clobClientPromise = (async () => {
+    const packageRoot = path.join(
+      process.cwd(),
+      "node_modules",
+      "@polymarket",
+      "clob-client"
+    );
+    const candidateEntries = [
+      "dist/index.js",
+      "dist/index.mjs",
+      "dist/index.cjs",
+      "src/index.js"
+    ];
+    const entryPath = candidateEntries
+      .map((entry) => path.join(packageRoot, entry))
+      .find((candidate) => fs.existsSync(candidate));
+
+    if (!entryPath) {
+      throw new Error(
+        "Missing @polymarket/clob-client build artifacts. " +
+          "Run: npm install, then cd node_modules/@polymarket/clob-client && npm install && npm run build."
+      );
+    }
+
+    const clobModule = await import(pathToFileURL(entryPath).href);
+    const ClobClient = clobModule.ClobClient ?? clobModule.default?.ClobClient;
+    if (!ClobClient) {
+      throw new Error("Unable to load ClobClient from @polymarket/clob-client.");
+    }
+
+    return ClobClient;
+  })();
+
+  return clobClientPromise;
+}
 
 function signRequest({ secret, timestamp, method, path, body, encoding }) {
   const payload = `${timestamp}${method.toUpperCase()}${path}${body}`;
@@ -55,6 +99,7 @@ export async function placeClobOrder({ tokenId, side, price, size, type = "limit
     if (!derivedCredsPromise) {
       derivedCredsPromise = (async () => {
         const signer = new Wallet(privateKey);
+        const ClobClient = await loadClobClient();
         const client = new ClobClient(CONFIG.clobBaseUrl, CHAIN_ID, signer);
         return await client.createOrDeriveApiKey();
       })();
