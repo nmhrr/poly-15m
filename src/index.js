@@ -25,6 +25,7 @@ import { createAutoTrader } from "./trading/autoTrader.js";
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
+import { spawn } from "node:child_process";
 import { applyGlobalProxyFromEnv } from "./net/proxy.js";
 
 function countVwapCrosses(closes, vwapSeries, lookback) {
@@ -77,6 +78,24 @@ function renderScreen(text) {
     // ignore
   }
   process.stdout.write(text);
+}
+
+function maybeLaunchCsvTail() {
+  if (!CONFIG.ui.tailCsvEnabled) return;
+  const csvPath = CONFIG.ui.tailCsvPath;
+  if (process.platform === "win32") {
+    const psCommand = `Get-Content -Path '${csvPath}' -Wait`;
+    spawn("cmd.exe", ["/c", "start", "powershell", "-NoExit", "-Command", psCommand], {
+      detached: true,
+      stdio: "ignore"
+    }).unref();
+    return;
+  }
+
+  spawn("sh", ["-c", `tail -f ${csvPath}`], {
+    detached: true,
+    stdio: "ignore"
+  }).unref();
 }
 
 function stripAnsi(s) {
@@ -401,6 +420,7 @@ async function main() {
   const polymarketLiveStream = startPolymarketChainlinkPriceStream({});
   const chainlinkStream = startChainlinkPriceStream({});
   const autoTrader = createAutoTrader();
+  maybeLaunchCsvTail();
 
   let prevSpotPrice = null;
   let prevCurrentPrice = null;
@@ -691,11 +711,25 @@ async function main() {
 
       const autoTradeLine = autoTrader.formatStatusLine();
 
+      const csvSummary = [
+        kv("Signal:", signal),
+        kv("Model Up:", formatProbPct(timeAware.adjustedUp, 2)),
+        kv("Model Down:", formatProbPct(timeAware.adjustedDown, 2)),
+        kv("Edge Up:", formatProbPct(edge.edgeUp, 2)),
+        kv("Edge Down:", formatProbPct(edge.edgeDown, 2)),
+        kv("Recommendation:", rec.action === "ENTER" ? `${rec.side}:${rec.phase}:${rec.strength}` : "NO_TRADE")
+      ];
+
       const lines = [
         titleLine,
         marketLine,
         kv("Time left:", `${timeColor}${fmtTimeLeft(timeLeftMin)}${ANSI.reset}`),
         autoTradeLine ? kv("AutoTrade:", autoTradeLine.replace("AutoTrade: ", "")) : null,
+        "",
+        sepLine(),
+        "",
+        kv("CSV Snapshot:", ""),
+        ...csvSummary,
         "",
         sepLine(),
         "",
@@ -723,7 +757,7 @@ async function main() {
         kv("ET | Session:", `${ANSI.white}${fmtEtTime(new Date())}${ANSI.reset} | ${ANSI.white}${getBtcSession(new Date())}${ANSI.reset}`),
         "",
         sepLine(),
-        centerText(`${ANSI.dim}${ANSI.gray}created by @krajekis${ANSI.reset}`, screenWidth())
+        centerText(`${ANSI.dim}${ANSI.gray}created by @krajekis | updated by @nmhrr${ANSI.reset}`, screenWidth())
       ].filter((x) => x !== null);
 
       renderScreen(lines.join("\n") + "\n");

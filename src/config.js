@@ -57,5 +57,10 @@ export const CONFIG = {
     priceUnit: process.env.POLYMARKET_PRICE_UNIT || "cents",
     upTokenId: "",
     downTokenId: ""
+  },
+
+  ui: {
+    tailCsvEnabled: (process.env.POLYMARKET_CSV_TAIL || "false").toLowerCase() === "true",
+    tailCsvPath: process.env.POLYMARKET_CSV_TAIL_PATH || "./logs/signals.csv"
   }
 };

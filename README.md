@@ -132,6 +132,15 @@ Get your API keys and secrets from https://polymarket.com/settings?tab=builder
 - `POLYMARKET_PRICE_UNIT` (default: `cents`)
   - Use `dollars` if your CLOB price API expects 0-1 dollar pricing.
 
+### CSV tail window (optional)
+
+If you want a second terminal window that shows the live CSV output, enable the tail helper:
+
+- `POLYMARKET_CSV_TAIL` (default: `false`)
+- `POLYMARKET_CSV_TAIL_PATH` (default: `./logs/signals.csv`)
+
+On Windows this opens a PowerShell window with `Get-Content -Wait`. On other platforms it runs `tail -f`.
+
 ### Chainlink on Polygon (fallback)
 
 - `CHAINLINK_BTC_USD_AGGREGATOR`
