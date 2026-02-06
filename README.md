@@ -1,6 +1,8 @@
 # Polymarket BTC 15m Assistant
 
-A real-time console trading assistant for Polymarket **"Bitcoin Up or Down" 15-minute** markets.
+A real-time console trading assistant and bot for Polymarket's **"Bitcoin Up or Down" 15-minute** markets.
+
+Support for Solana, Ethereum, and XRP coming soon.
 
 It combines:
 - Polymarket market selection + UP/DOWN prices + liquidity
