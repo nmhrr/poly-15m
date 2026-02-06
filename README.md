@@ -1,6 +1,8 @@
 # Polymarket BTC 15m Assistant
 
-A real-time console trading assistant for Polymarket **"Bitcoin Up or Down" 15-minute** markets.
+A real-time console trading assistant and bot for Polymarket's **"Bitcoin Up or Down" 15-minute** markets.
+
+Support for Solana, Ethereum, and XRP coming soon.
 
 It combines:
 - Polymarket market selection + UP/DOWN prices + liquidity
@@ -21,7 +23,7 @@ It combines:
 ### 1) Clone the repository
 
 ```bash
-git clone https://github.com/FrondEnt/PolymarketBTC15mAssistant.git
+git clone https://github.com/nmhrr/poly-15m.git
 ```
 
 Alternative (no git):
@@ -104,7 +106,7 @@ The assistant can place CLOB orders when rules are satisfied. By default, auto-t
 - `POLYMARKET_ACCOUNT_TYPE`
   - Required for live trading. Use `email` (Magic Link) or `wallet`.
 - `POLYMARKET_PRIVATE_KEY`
-  - Required for live trading. Used to derive user API credentials locally at runtime.
+  - Required for live trading. Used to derive user API credentials locally at runtime. If you signed up for Polymarket with your email, use https://reveal.magic.link/polymarket to retrieve your private key.
 - `POLYMARKET_CLOB_ORDER_PATH` (default: `/order`)
 - `POLYMARKET_CLOB_ORDER_TYPE` (default: `limit`)
 - `POLYMARKET_CLOB_TIME_IN_FORCE` (default: `gtc`)
@@ -112,8 +114,6 @@ The assistant can place CLOB orders when rules are satisfied. By default, auto-t
   - Some CLOB keys require `base64` signatures if `hex` returns 401.
 - `POLYMARKET_CLOB_TIMESTAMP_UNIT` (default: `s`)
   - Use `ms` if your key expects millisecond timestamps.
-- **Do not use Builder API credentials** from Polymarket settings as CLOB user credentials.
-  - Builder keys are for order attribution; this bot derives user API credentials from your private key at runtime.
 - `POLYMARKET_ORDER_USD` (default: `10`)
   - Dollar amount to allocate per order.
 - `POLYMARKET_MIN_MINUTES_LEFT` (default: `5`)

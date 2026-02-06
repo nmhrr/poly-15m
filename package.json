@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "derive-user-creds": "node scripts/deriveUserApiCreds.js"
   },
   "dependencies": {
     "@polymarket/clob-client": "github:Polymarket/clob-client",
