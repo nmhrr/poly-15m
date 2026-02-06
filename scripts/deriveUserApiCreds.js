@@ -1,5 +1,42 @@
-import { ClobClient } from "@polymarket/clob-client";
+import fs from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { Wallet } from "ethers5";
+
+const packageRoot = path.join(
+  process.cwd(),
+  "node_modules",
+  "@polymarket",
+  "clob-client"
+);
+const candidateEntries = [
+  "dist/index.js",
+  "dist/index.mjs",
+  "dist/index.cjs",
+  "src/index.js",
+];
+const entryPath = candidateEntries
+  .map((entry) => path.join(packageRoot, entry))
+  .find((candidate) => fs.existsSync(candidate));
+
+if (!entryPath) {
+  console.error("Missing @polymarket/clob-client build artifacts.");
+  console.error("Try:");
+  console.error("  npm install");
+  console.error("  cd node_modules/@polymarket/clob-client");
+  console.error("  npm install");
+  console.error("  npm run build");
+  console.error("Then re-run: npm run derive-user-creds");
+  process.exit(1);
+}
+
+const clobModule = await import(pathToFileURL(entryPath).href);
+const ClobClient = clobModule.ClobClient ?? clobModule.default?.ClobClient;
+
+if (!ClobClient) {
+  console.error("Unable to load ClobClient from @polymarket/clob-client.");
+  process.exit(1);
+}
 
 const HOST = "https://clob.polymarket.com";
 const CHAIN_ID = 137;

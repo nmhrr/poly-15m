@@ -131,6 +131,9 @@ npm run derive-user-creds
 ```
 
 > Note: this repo installs `@polymarket/clob-client` directly from GitHub. Make sure Git is installed and available on your PATH if `npm install` prompts for it.
+>
+> If `npm run derive-user-creds` complains about missing build artifacts, run:
+> `cd node_modules/@polymarket/clob-client && npm install && npm run build`, then retry.
 
 3) Copy the printed `API Key`, `Secret`, and `Passphrase`, then set:
 
