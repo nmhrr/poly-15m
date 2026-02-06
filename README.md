@@ -116,34 +116,52 @@ The assistant can place CLOB orders when rules are satisfied. By default, auto-t
 - **Do not use Builder API credentials** from Polymarket settings as CLOB user credentials.
   - Builder keys are for order attribution; CLOB trading requires user API credentials derived from your private key.
 
-#### Derive CLOB user API credentials (Windows 11)
+#### Derive CLOB user API credentials (standalone script — not in this repo)
 
 Use your **private key locally** to generate **user API credentials** once, then only store the derived `apiKey/secret/passphrase` in your environment. **Never share your private key.**
 
 1) Export your private key from Polymarket (Settings → Export Private Key).
-2) Run the helper script from the repo root:
+2) Create a **separate folder** outside this repo (example below) and run the standalone script there:
 
 ```powershell
-setx PRIVATE_KEY "YOUR_PRIVATE_KEY"
-$env:PRIVATE_KEY = "YOUR_PRIVATE_KEY"
-npm install
-npm run derive-user-creds
+mkdir $env:USERPROFILE\\polymarket-creds
+cd $env:USERPROFILE\\polymarket-creds
+npm init -y
+npm install @polymarket/clob-client ethers@5
 ```
 
-> Note: this repo installs `@polymarket/clob-client` directly from GitHub. Make sure Git is installed and available on your PATH if `npm install` prompts for it.
->
-> The helper will attempt to build `@polymarket/clob-client` automatically. If it still complains about missing build artifacts, run:
->
-> ```powershell
-> cd node_modules/@polymarket/clob-client
-> npm install
-> npm run build
-> cd ../..
-> ```
->
-> Then retry `npm run derive-user-creds`.
+3) Create a file named `derive-user-creds.mjs` in that folder with this content:
 
-3) Copy the printed `API Key`, `Secret`, and `Passphrase`, then set:
+```js
+import { ClobClient } from "@polymarket/clob-client";
+import { Wallet } from "ethers";
+
+const HOST = "https://clob.polymarket.com";
+const CHAIN_ID = 137;
+
+const privateKey = process.env.PRIVATE_KEY;
+if (!privateKey) {
+  console.error("Missing PRIVATE_KEY in environment. Aborting.");
+  process.exit(1);
+}
+
+const signer = new Wallet(privateKey);
+const client = new ClobClient(HOST, CHAIN_ID, signer);
+const userApiCreds = await client.createOrDeriveApiKey();
+
+console.log("API Key:", userApiCreds.apiKey);
+console.log("Secret:", userApiCreds.secret);
+console.log("Passphrase:", userApiCreds.passphrase);
+```
+
+4) Run it (still outside this repo):
+
+```powershell
+$env:PRIVATE_KEY = "YOUR_PRIVATE_KEY"
+node .\\derive-user-creds.mjs
+```
+
+5) Copy the printed `API Key`, `Secret`, and `Passphrase`, then set in your bot session:
 
 ```powershell
 $env:POLYMARKET_CLOB_API_KEY = "..."
@@ -151,7 +169,7 @@ $env:POLYMARKET_CLOB_API_SECRET = "..."
 $env:POLYMARKET_CLOB_API_PASSPHRASE = "..."
 ```
 
-4) Optional: clear the private key from your session:
+6) Optional: clear the private key from your session:
 
 ```powershell
 Remove-Item Env:PRIVATE_KEY
