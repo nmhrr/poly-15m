@@ -75,6 +75,13 @@ export async function placeClobOrder({ tokenId, side, price, size, type = "limit
 
   if (!res.ok) {
     const details = await res.text();
+    if (res.status === 401) {
+      throw new Error(
+        `CLOB order error: ${res.status} ${details} ` +
+        "(Check that you are using user API credentials derived from your private key; " +
+        "builder API keys from the Polymarket settings page cannot authenticate orders.)"
+      );
+    }
     throw new Error(`CLOB order error: ${res.status} ${details}`);
   }
 

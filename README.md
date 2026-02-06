@@ -98,7 +98,6 @@ You can set them in your shell, or create a `.env` file and load it using your p
 ### Auto-trading (optional)
 
 The assistant can place CLOB orders when rules are satisfied. By default, auto-trading is **disabled** and runs in **dry-run** mode. You must explicitly enable it.
-Get your API keys and secrets from https://polymarket.com/settings?tab=builder
 
 - `POLYMARKET_AUTO_TRADE` (default: `false`)
   - Set to `true` to allow auto-trading logic to run.
@@ -114,6 +113,36 @@ Get your API keys and secrets from https://polymarket.com/settings?tab=builder
   - Some CLOB keys require `base64` signatures if `hex` returns 401.
 - `POLYMARKET_CLOB_TIMESTAMP_UNIT` (default: `s`)
   - Use `ms` if your key expects millisecond timestamps.
+- **Do not use Builder API credentials** from Polymarket settings as CLOB user credentials.
+  - Builder keys are for order attribution; CLOB trading requires user API credentials derived from your private key.
+
+#### Derive CLOB user API credentials (Windows 11)
+
+Use your **private key locally** to generate **user API credentials** once, then only store the derived `apiKey/secret/passphrase` in your environment. **Never share your private key.**
+
+1) Export your private key from Polymarket (Settings → Export Private Key).
+2) Run the helper script from the repo root:
+
+```powershell
+setx PRIVATE_KEY "YOUR_PRIVATE_KEY"
+$env:PRIVATE_KEY = "YOUR_PRIVATE_KEY"
+npm install
+npm run derive-user-creds
+```
+
+3) Copy the printed `API Key`, `Secret`, and `Passphrase`, then set:
+
+```powershell
+$env:POLYMARKET_CLOB_API_KEY = "..."
+$env:POLYMARKET_CLOB_API_SECRET = "..."
+$env:POLYMARKET_CLOB_API_PASSPHRASE = "..."
+```
+
+4) Optional: clear the private key from your session:
+
+```powershell
+Remove-Item Env:PRIVATE_KEY
+```
 - `POLYMARKET_ORDER_USD` (default: `10`)
   - Dollar amount to allocate per order.
 - `POLYMARKET_MIN_MINUTES_LEFT` (default: `5`)
