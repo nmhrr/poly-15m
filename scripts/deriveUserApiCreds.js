@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { spawnSync } from "node:child_process";
 import { Wallet } from "ethers5";
 
 const packageRoot = path.join(
@@ -15,9 +16,42 @@ const candidateEntries = [
   "dist/index.cjs",
   "src/index.js",
 ];
-const entryPath = candidateEntries
-  .map((entry) => path.join(packageRoot, entry))
-  .find((candidate) => fs.existsSync(candidate));
+const resolveEntryPath = () =>
+  candidateEntries
+    .map((entry) => path.join(packageRoot, entry))
+    .find((candidate) => fs.existsSync(candidate));
+
+const ensureClobClientBuild = () => {
+  if (!fs.existsSync(packageRoot)) {
+    return false;
+  }
+
+  const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+  const installResult = spawnSync(npmCmd, ["install"], {
+    cwd: packageRoot,
+    stdio: "inherit",
+  });
+
+  if (installResult.status !== 0) {
+    return false;
+  }
+
+  const buildResult = spawnSync(npmCmd, ["run", "build"], {
+    cwd: packageRoot,
+    stdio: "inherit",
+  });
+
+  return buildResult.status === 0;
+};
+
+let entryPath = resolveEntryPath();
+
+if (!entryPath) {
+  const buildSucceeded = ensureClobClientBuild();
+  if (buildSucceeded) {
+    entryPath = resolveEntryPath();
+  }
+}
 
 if (!entryPath) {
   console.error("Missing @polymarket/clob-client build artifacts.");
